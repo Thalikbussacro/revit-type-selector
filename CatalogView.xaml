@@ -1,7 +1,80 @@
 <UserControl x:Class="TypeCatalogMVP.CatalogView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             MinWidth="220">
+             MinWidth="220"
+             TextOptions.TextFormattingMode="Display"
+             Background="{DynamicResource CatBg}"
+             Foreground="{DynamicResource CatFg}">
+
+  <UserControl.Resources>
+
+    <!-- Category pill (a restyled ListBoxItem: single-selection gives us "one active pill") -->
+    <Style x:Key="PillItem" TargetType="ListBoxItem">
+      <Setter Property="Margin" Value="0,0,4,4"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="SnapsToDevicePixels" Value="True"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Border x:Name="PillBg" CornerRadius="9" Padding="9,3"
+                    Background="{DynamicResource CatPill}">
+              <TextBlock x:Name="PillText" Text="{Binding}" FontSize="11"
+                         Foreground="{DynamicResource CatMuted}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="PillBg" Property="Background" Value="{DynamicResource CatHover}"/>
+              </Trigger>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="PillBg" Property="Background" Value="{DynamicResource CatAccent}"/>
+                <Setter TargetName="PillText" Property="Foreground" Value="{DynamicResource CatAccentFg}"/>
+                <Setter TargetName="PillText" Property="FontWeight" Value="SemiBold"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- A catalog tile: square thumbnail + name + family, click to place -->
+    <Style x:Key="TileButton" TargetType="Button">
+      <Setter Property="Width" Value="92"/>
+      <Setter Property="Margin" Value="3"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Tile" CornerRadius="7" Padding="6"
+                    Background="{DynamicResource CatCard}"
+                    BorderBrush="{DynamicResource CatLine}" BorderThickness="1"
+                    SnapsToDevicePixels="True">
+              <StackPanel>
+                <Border Width="78" Height="78" CornerRadius="4"
+                        Background="{DynamicResource CatThumb}">
+                  <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4"/>
+                </Border>
+                <TextBlock Text="{Binding Name}" FontSize="11" Margin="0,5,0,0"
+                           TextWrapping="Wrap" TextAlignment="Center"
+                           MaxHeight="30" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource CatFg}"/>
+                <TextBlock Text="{Binding FamilyName}" FontSize="9.5" TextAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource CatMuted}"/>
+              </StackPanel>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Tile" Property="Background" Value="{DynamicResource CatHover}"/>
+                <Setter TargetName="Tile" Property="BorderBrush" Value="{DynamicResource CatAccent}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+  </UserControl.Resources>
+
   <DockPanel Margin="6">
 
     <!-- Search + refresh -->
@@ -10,46 +83,65 @@
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="Auto"/>
       </Grid.ColumnDefinitions>
-      <TextBox Grid.Column="0" Padding="4,2" VerticalContentAlignment="Center"
-               Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
-      <Button Grid.Column="1" Content="Refresh" Margin="6,0,0,0" Padding="8,2"
+
+      <Grid Grid.Column="0">
+        <TextBox x:Name="SearchBox" Padding="6,3" VerticalContentAlignment="Center"
+                 Background="{DynamicResource CatCard}" Foreground="{DynamicResource CatFg}"
+                 BorderBrush="{DynamicResource CatLine}" CaretBrush="{DynamicResource CatFg}"
+                 Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBlock IsHitTestVisible="False" Text="Search…" Margin="8,0,0,0"
+                   VerticalAlignment="Center" Foreground="{DynamicResource CatMuted}">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Visibility" Value="Collapsed"/>
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding Search}" Value="">
+                  <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
+      </Grid>
+
+      <Button Grid.Column="1" Content="Refresh" Margin="6,0,0,0" Padding="8,3"
+              Background="{DynamicResource CatCard}" Foreground="{DynamicResource CatFg}"
+              BorderBrush="{DynamicResource CatLine}"
               Command="{Binding RefreshCommand}"/>
     </Grid>
 
-    <!-- Catalog list, grouped by category -->
-    <ListBox ItemsSource="{Binding ItemsView}"
-             HorizontalContentAlignment="Stretch"
+    <!-- Category pills (single-select) -->
+    <ListBox DockPanel.Dock="Top" Margin="0,0,0,6"
+             ItemsSource="{Binding Categories}"
+             SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+             ItemContainerStyle="{StaticResource PillItem}"
+             Background="Transparent" BorderThickness="0"
              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-      <ListBox.GroupStyle>
-        <GroupStyle>
-          <GroupStyle.HeaderTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="2,8,2,2"/>
-            </DataTemplate>
-          </GroupStyle.HeaderTemplate>
-        </GroupStyle>
-      </ListBox.GroupStyle>
-
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <!-- Click anywhere on the card to enter placement -->
-          <Button HorizontalContentAlignment="Left" Margin="0,2" Padding="4"
-                  Command="{Binding DataContext.PlaceCommand,
-                                    RelativeSource={RelativeSource AncestorType=ListBox}}"
-                  CommandParameter="{Binding}">
-            <StackPanel Orientation="Horizontal">
-              <Border Width="48" Height="48" Margin="0,0,8,0" Background="#22000000">
-                <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
-              </Border>
-              <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                <TextBlock Text="{Binding FamilyName}" FontSize="11" Opacity="0.7" TextWrapping="Wrap"/>
-              </StackPanel>
-            </StackPanel>
-          </Button>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <WrapPanel Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
     </ListBox>
+
+    <!-- Tile grid -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding ItemsView}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Button Style="{StaticResource TileButton}" ToolTip="{Binding Name}"
+                    Command="{Binding DataContext.PlaceCommand,
+                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                    CommandParameter="{Binding}"/>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
 
   </DockPanel>
 </UserControl>

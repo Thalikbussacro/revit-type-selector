@@ -15,14 +15,32 @@ namespace TypeCatalogMVP
         private readonly ExternalEvent _externalEvent;
         private readonly RequestHandler _handler;
 
+        // Pseudo-category shown as the first pill; means "no category filter".
+        public const string AllCategories = "All";
+
         public ObservableCollection<FamilyTypeItem> Items { get; } = new();
         public ICollectionView ItemsView { get; }
+
+        // Category pills, rebuilt from the loaded items. Always starts with "All".
+        public ObservableCollection<string> Categories { get; } = new() { AllCategories };
 
         private string _search = "";
         public string Search
         {
             get => _search;
             set { _search = value; OnPropertyChanged(); ItemsView.Refresh(); }
+        }
+
+        private string _selectedCategory = AllCategories;
+        public string SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                _selectedCategory = value ?? AllCategories;
+                OnPropertyChanged();
+                ItemsView.Refresh();
+            }
         }
 
         public ICommand PlaceCommand { get; }
@@ -34,8 +52,6 @@ namespace TypeCatalogMVP
             _handler = handler;
 
             ItemsView = CollectionViewSource.GetDefaultView(Items);
-            ItemsView.GroupDescriptions.Add(
-                new PropertyGroupDescription(nameof(FamilyTypeItem.Category)));
             ItemsView.Filter = FilterItem;
 
             PlaceCommand = new RelayCommand(p =>
@@ -52,8 +68,15 @@ namespace TypeCatalogMVP
 
         private bool FilterItem(object o)
         {
-            if (string.IsNullOrWhiteSpace(_search)) return true;
             if (o is not FamilyTypeItem it) return false;
+
+            // Category pill filter (All = no restriction).
+            if (_selectedCategory != AllCategories
+                && !string.Equals(it.Category, _selectedCategory, StringComparison.Ordinal))
+                return false;
+
+            // Text search, applied within the selected category.
+            if (string.IsNullOrWhiteSpace(_search)) return true;
 
             var q = _search.Trim();
             return it.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
@@ -78,7 +101,29 @@ namespace TypeCatalogMVP
             {
                 Items.Add(i);
             }
+
+            RebuildCategories();
             ItemsView.Refresh();
+        }
+
+        private void RebuildCategories()
+        {
+            var cats = Items.Select(i => i.Category)
+                            .Where(c => !string.IsNullOrEmpty(c))
+                            .Distinct()
+                            .OrderBy(c => c, StringComparer.OrdinalIgnoreCase)
+                            .ToList();
+
+            Categories.Clear();
+            Categories.Add(AllCategories);
+            foreach (var c in cats) Categories.Add(c);
+
+            // Keep the current pill if it still exists, otherwise fall back to "All".
+            if (!Categories.Contains(_selectedCategory))
+            {
+                _selectedCategory = AllCategories;
+                OnPropertyChanged(nameof(SelectedCategory));
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
