@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Class library: no WinExe, no auto WPF App.xaml -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Adjust the HintPath if Revit is installed elsewhere. Private=false: never copy Revit DLLs to output. -->
+    <Reference Include="RevitAPI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2026\RevitAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2026\RevitAPIUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- CONCERN: Revit 2026 already loads System.Drawing.Common. ExcludeAssets=runtime makes this
+         compile-time only so we don't ship a conflicting copy; Revit's loaded assembly is used at runtime.
+         If the compile version mismatches what Revit ships, bump this to match. -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Deploy: copia o manifesto .addin para a pasta de Addins do Revit 2026 do usuario apos
+       cada build. O .addin referencia a DLL em bin\Debug pelo caminho absoluto, entao a DLL
+       nao precisa ser copiada. %AppData% e por usuario, nao exige admin. -->
+  <Target Name="DeployAddin" AfterTargets="Build">
+    <PropertyGroup>
+      <RevitAddinsDir>$(AppData)\Autodesk\Revit\Addins\2026</RevitAddinsDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(RevitAddinsDir)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\TypeCatalogMVP.addin"
+          DestinationFolder="$(RevitAddinsDir)"
+          SkipUnchangedFiles="false" />
+    <Message Importance="high" Text="Deployed TypeCatalogMVP.addin -> $(RevitAddinsDir)" />
+  </Target>
+
+</Project>

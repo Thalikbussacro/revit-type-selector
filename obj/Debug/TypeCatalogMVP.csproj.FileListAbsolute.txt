@@ -1,0 +1,16 @@
+C:\Users\Thalik\Repos\plugin-thesims-revit\bin\Debug\TypeCatalogMVP.deps.json
+C:\Users\Thalik\Repos\plugin-thesims-revit\bin\Debug\TypeCatalogMVP.dll
+C:\Users\Thalik\Repos\plugin-thesims-revit\bin\Debug\TypeCatalogMVP.pdb
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.csproj.AssemblyReference.cache
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\CatalogView.baml
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\CatalogView.g.cs
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP_MarkupCompile.cache
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.g.resources
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.AssemblyInfoInputs.cache
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.AssemblyInfo.cs
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.csproj.CoreCompileInputs.cache
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.dll
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\refint\TypeCatalogMVP.dll
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\TypeCatalogMVP.pdb
+C:\Users\Thalik\Repos\plugin-thesims-revit\obj\Debug\ref\TypeCatalogMVP.dll
